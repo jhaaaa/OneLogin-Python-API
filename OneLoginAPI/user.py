@@ -1,7 +1,11 @@
+import urllib3
+
+urllib3.disable_warnings()
+
 class User(object):
 	'''create the user object and store all of their associated values'''
 
-	def __init__(self, First, Last, Email, Password, Subdomain, Attribute=None, AttributeValue=None, Roles=0, Group=0, userID=0):
+	def __init__(self, First, Last, Email, Password, Subdomain, Attribute=None, AttributeValue=None, Roles=None, Group=None, userID=None):
 		"""Build a user object"""
 		self.FirstName = First
 		self.LastName = Last
@@ -33,7 +37,14 @@ class User(object):
 
 	def getRoles(self):
 		"""return the user's Roles attribute"""
-		return self.Roles
+		payload = ''
+		if self.Roles:
+			if type(self.Roles) != int:
+				for x in range(0,len(self.Roles)):
+					payload += "%s" % (self.Roles[x])
+				return self.Roles
+			else:
+				return None
 
 	def getGroup(self):
 		"""return the user's Group attribute"""
@@ -45,7 +56,7 @@ class User(object):
 
 	def getUsername(self):
 		"""return the user's Username attribute"""
-		return self.UserName
+		return self.Username.lower()
 
 	def getUserID(self):
 		"""return the user's UserID attribute"""
@@ -57,41 +68,50 @@ class User(object):
 
 	def getCustomAttributeValue(self):
 		"""return the user's custom attribute value"""
-		return self.AttributeValue
+		payload = ''
+		if len(self.Attribute) > 0:
+			for x in range(0,len(self.Attribute)):
+				payload += "%s : %s" % (self.Attribute[x], self.AttributeValue[x])
+			return payload
+		else:
+			return payload
+		
 
 	def FirstNamePayload(self):
 		"""generate XML Payload for user's Firstname"""
-		return "<firstname>" + self.FirstName + "</firstname>"
+		return "<firstname>%s</firstname>" % (self.FirstName)
 
 	def LastNamePayload(self):
 		"""generate XML Payload for user's LastName"""
-		return "<lastname>" + self.LastName + "</lastname>"
+		return "<lastname>%s</lastname>" % (self.LastName)
 
 	def EmailPayload(self):
 		"""generate XML Payload for user's Email"""
-		return "<email>" + self.Email + "</email>"
+		return "<email>%s</email>" % (self.Email)
 
 	def PasswordPayload(self):
 		"""generate XML Payload for user's Password"""
-		return "<password>" + self.Password + "</password><password_confirmation>" + self.Password + "</password_confirmation>"
+		return "<password>%s</password><password_confirmation>%s</password_confirmation>" % (self.Password, self.Password)
 
 	def RolePayload(self):
 		"""generate XML Payload for user's Roles, can handle more than one role"""
-		if type(self.Roles) == int:
-			return "<roles type='array'><role>" + str(self.Roles) + "</role></roles>"
+		pre_return = ''
+		if self.Roles:
+			if len(self.Roles):
+				for x in range(0,len(self.Roles)):
+					pre_return += "<role>" + str(self.Roles[x]) + "</role>"
+				return "<roles type='array'>%s</roles>" % (pre_return)
+			else:
+				return "<roles type='array'>%s</roles>" % (self.Roles)
 		else:
-			RoleCount = len(self.Roles)
-			count = 0
-			pre_return = ''
-			if RoleCount > 1:
-				while count != RoleCount:
-					pre_return += "<role>" + str(self.Roles[count]) + "</role>"
-					count += 1	
-				return "<roles type='array'>" + pre_return + "</roles>"
+			return None
 		
 	def GroupPayload(self):
 		"""generate XML Payload for user's Group"""
-		return "<group-id>" + str(self.Group) + "</group-id>"
+		if self.Group:
+			return "<group-id>%s</group-id>" % (self.Group)
+		else:
+			return None
 
 	def UserNamePayload(self):
 		"""generate XML Payload for user's Username"""
@@ -99,8 +119,23 @@ class User(object):
 
 	def CustomAttributePayload(self):
 		"""generate custom attribute payload for user updates"""
+		payload = ''
 		if self.Attribute:
 			for each in self.Attribute:
 				payloadAttribute = dict(zip(self.Attribute,self.AttributeValue))
 				for key in payloadAttribute:
-					return "<customer_attribute_" + str(key) + ">" + str(payloadAttribute[key]) + "</custom_attribute_" + str(key) + ">"
+					return "<custom_attribute_" + str(key) + ">" + str(payloadAttribute[key]) + "</custom_attribute_" + str(key) + ">"
+		else:
+			return None
+
+
+
+
+
+
+
+
+
+
+
+
